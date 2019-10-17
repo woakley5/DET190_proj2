@@ -1,3 +1,4 @@
+
 from __future__ import division
 
 import re
@@ -16,14 +17,13 @@ import os
 import time
 from adafruit_crickit import crickit
 from adafruit_seesaw.neopixel import NeoPixel
-
-num_pixels = 10  # Number of pixels driven from Crickit NeoPixel terminal
+num_pixels = 40  # Number of pixels driven from Crickit NeoPixel terminal
 
 # The following line sets up a NeoPixel strip on Seesaw pin 20 for Feather
 pixels = NeoPixel(crickit.seesaw, 20, num_pixels)
 
 # Audio recording parameters, set for our USB mic.
-RATE = 44100 #if you change mics - be sure to change this :)
+RATE = 48000 #if you change mics - be sure to change this :)
 CHUNK = int(RATE / 10)  # 100ms
 
 credential_path = "/home/pi/Desktop/gcp_credentials.json" #replace with your file name!
@@ -33,6 +33,7 @@ client = speech.SpeechClient()
 
 pygame.init()
 pygame.mixer.init()
+
 #MicrophoneStream() is brought in from Google Cloud Platform
 class MicrophoneStream(object):
     """Opens a recording stream as a generator yielding the audio chunks."""
@@ -98,7 +99,7 @@ class MicrophoneStream(object):
 
             yield b''.join(data)
 
-#this loop is where the microphone stream gets sent
+# #this loop is where the microphone stream gets sent
 def listen_print_loop(responses):
     """Iterates through server responses and prints them.
 
@@ -162,97 +163,15 @@ def decide_action(transcript):
 
     if re.search('on',transcript, re.I):
         LED_Action(1)
-    elif re.search('off',transcript, re.I):
-        LED_Action(2)
-    elif re.search('blink',transcript, re.I):
-        LED_Action(3)
-    elif re.search('bears',transcript, re.I):
-        Motor_Action('bears')
-    elif re.search('cardinals',transcript, re.I):
-        Motor_Action('cardinals')
-    elif re.search('fairest',transcript, re.I):
-        Fairest()
-    elif re.search('repeat',transcript, re.I):
-        repeat(transcript)
-    else:
-        idontknow()
 
 
-def LED_Action(numbers):
+def fillLEDs(color):
+    #for i in range(0, 10):
+        #if i % onPixelSpacing == 0:
+    pixels.fill(color)
 
-    ss = crickit.seesaw
-
-    RED = (255, 0, 0)
-    YELLOW = (255, 150, 0)
-    GREEN = (0, 255, 0)
-    CYAN = (0, 255, 255)
-    BLUE = (0, 0, 255)
-    PURPLE = (180, 0, 255)
-    OFF = (0,0,0)
-
-    print("initialize off")
-    pixels.fill(OFF)
-
-    if numbers == 3:
-        pixels.fill(RED)
-        time.sleep(0.5)
-        pixels.fill(OFF)
-        time.sleep(0.5)
-        pixels.fill(RED)
-        pixels.fill(RED)
-        time.sleep(0.5)
-        pixels.fill(OFF)
-        time.sleep(0.5)
-        pixels.fill(RED)
-
-    elif numbers == 2:
-        pixels.fill(OFF)
-        time.sleep(0.5)
-    elif numbers == 1:
-        pixels.fill(PURPLE)
-        time.sleep(0.5)
-
-def Motor_Action(bears):
-
-    if bears == 'bears':
-        crickit.servo_1.angle = 0      # right
-        time.sleep(1)
-    elif bears == 'cardinal':
-        crickit.servo_1.angle = 180
-        time.sleep(1)
-
-def Fairest():
-    pygame.mixer.init()
-    pygame.mixer.music.load('fairest.mp3')
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
-
-def repeat(transcript):
-    t2s = gTTS('You said {}'.format(transcript), lang ='en')
-    t2s.save('repeat.mp3')
-
-    pygame.mixer.init()
-    pygame.mixer.music.load('repeat.mp3')
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
-
-def idontknow():
-    pygame.mixer.init()
-    pygame.mixer.music.load('idontknow.mp3')
-    pygame.mixer.music.play()
-    while pygame.mixer.music.get_busy():
-        pygame.time.Clock().tick(10)
 
 def main():
-
-    #setting up the GTTS responses as .mp3 files!
-    t2s = gTTS('You are the fairest of them all!', lang ='en')
-    t2s.save('fairest.mp3')
-    t2s = gTTS('You didnt tell me what to do with that.', lang='en')
-    t2s.save('idontknow.mp3')
-
     # See http://g.co/cloud/speech/docs/languages
     # for a list of supported languages.
     # this code comes from Google Cloud's Speech to Text API!
@@ -271,6 +190,7 @@ def main():
         config=config,
         interim_results=True)
 
+    fillLEDs((0,255,0))
     #this section is where the action happens:
     #a microphone stream is set up, requests are generated based on
     #how the audiofile is chunked, and they are sent to GCP using
