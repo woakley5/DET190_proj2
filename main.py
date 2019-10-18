@@ -17,7 +17,8 @@ import os
 import time
 from adafruit_crickit import crickit
 from adafruit_seesaw.neopixel import NeoPixel
-num_pixels = 40  # Number of pixels driven from Crickit NeoPixel terminal
+
+num_pixels = 75  # Number of pixels driven from Crickit NeoPixel terminal
 
 # The following line sets up a NeoPixel strip on Seesaw pin 20 for Feather
 pixels = NeoPixel(crickit.seesaw, 20, num_pixels)
@@ -161,13 +162,15 @@ def decide_action(transcript):
     #here we're using some simple code on the final transcript from
     #GCP to figure out what to do, how to respond.
 
-    if re.search('on',transcript, re.I):
-        LED_Action(1)
+    if re.search('test',transcript, re.I):
+        fillLEDs((0,10,10))
+    elif re.search('off',transcript, re.I):
+        fillLEDs((0,0,0))
+
 
 
 def fillLEDs(color):
-    #for i in range(0, 10):
-        #if i % onPixelSpacing == 0:
+
     pixels.fill(color)
 
 
@@ -190,7 +193,6 @@ def main():
         config=config,
         interim_results=True)
 
-    fillLEDs((0,255,0))
     #this section is where the action happens:
     #a microphone stream is set up, requests are generated based on
     #how the audiofile is chunked, and they are sent to GCP using
